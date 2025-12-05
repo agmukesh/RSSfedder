@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block title %}Home - NEWS RSS READER{% endblock %}
+
+{% block content %}
+    {% for article in articles %}
+    <article>
+        <h2><a href="{{ article.link }}" target="_blank">{{ article.title }}</a></h2>
+        <div class="source"><strong>Source:</strong> {{ article.source }}</div>
+        <div class="published"><strong>Published:</strong> {{ article.published }}</div>
+    </article>
+    {% endfor %}
+    
+    <div class="pagination">
+        {% if page > 1 %}
+        <a href="/?page={{ page - 1 }}">← Previous</a>
+        {% endif %}
+        <span>Page {{ page }} of {{ total_pages }}</span>
+        {% if page < total_pages %}
+        <a href="/?page={{ page + 1 }}">Next →</a>
+        {% endif %}
+    </div>
+{% endblock %}
