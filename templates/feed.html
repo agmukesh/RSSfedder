@@ -1,0 +1,296 @@
+{% extends "base.html" %}
+
+{% block title %}{{ provider }} - NEWS RSS READER{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Sentiment stat cards */
+    .sentiment-stats {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+    .stat-card {
+        background: #fff;
+        padding: 20px;
+        border-radius: 12px;
+        text-align: center;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+        border-top: 4px solid #f0f1f5;
+    }
+    .stat-card.pos { border-top-color: #6abf4b; }
+    .stat-card.neg { border-top-color: #e85d5d; }
+    .stat-card.neu { border-top-color: #95a5a6; }
+    .stat-card h5 { margin: 0 0 8px; font-size: 13px; color: #8d91a0; font-weight: 600; }
+    .stat-card .stat-value { font-size: 28px; font-weight: 700; color: #2b2d42; }
+    .stat-card.pos .stat-value { color: #6abf4b; }
+    .stat-card.neg .stat-value { color: #e85d5d; }
+    .stat-card.neu .stat-value { color: #95a5a6; }
+    .stat-card p { margin: 4px 0 0; font-size: 12px; color: #8d91a0; }
+
+    /* Article cards */
+    .article-card {
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+        padding: 20px;
+        margin-bottom: 14px;
+        transition: box-shadow 0.2s;
+    }
+    .article-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.1); }
+
+    .article-title {
+        font-size: 17px;
+        font-weight: 700;
+        color: #2b2d42;
+        margin-bottom: 8px;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 12px;
+    }
+    .article-meta {
+        color: #8d91a0;
+        font-size: 13px;
+        margin-bottom: 10px;
+    }
+    .article-meta strong { color: #2b2d42; }
+    .article-summary {
+        background: #f8f9fb;
+        padding: 12px 16px;
+        border-left: 4px solid #667eea;
+        border-radius: 0 8px 8px 0;
+        margin: 10px 0;
+        font-size: 13px;
+        line-height: 1.6;
+        color: #8d91a0;
+    }
+
+    .sentiment-badge {
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
+    .sentiment-positive { background: rgba(106,191,75,0.12); color: #4a9e2f; }
+    .sentiment-negative { background: rgba(232,93,93,0.12); color: #c0392b; }
+    .sentiment-neutral { background: #f0f1f5; color: #8d91a0; }
+
+    .read-button {
+        display: inline-block;
+        margin-top: 10px;
+        padding: 8px 20px;
+        background: #667eea;
+        color: #fff;
+        text-decoration: none;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 600;
+        transition: background 0.2s;
+    }
+    .read-button:hover { background: #764ba2; }
+
+    .btn-summarize {
+        display: inline-block;
+        margin-top: 10px;
+        margin-left: 8px;
+        padding: 8px 18px;
+        background: #eef2ff;
+        border: 1px solid #c7d2fe;
+        color: #4338ca;
+        font-size: 12px;
+        font-weight: 600;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: background 0.15s;
+    }
+    .btn-summarize:hover:not(:disabled) { background: #c7d2fe; }
+    .btn-summarize:disabled { opacity: 0.6; cursor: progress; }
+
+    /* Error */
+    .error-card {
+        background: #fff;
+        padding: 30px;
+        border-radius: 12px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+        border-left: 4px solid #e85d5d;
+        margin-bottom: 20px;
+    }
+    .error-card h3 { color: #e85d5d; margin-bottom: 8px; font-size: 18px; }
+    .error-card p { color: #8d91a0; margin-bottom: 12px; }
+    .error-card a { color: #667eea; text-decoration: none; font-weight: 600; }
+    .error-card a:hover { text-decoration: underline; }
+
+    /* Provider pills */
+    .other-providers {
+        background: #fff;
+        padding: 22px;
+        border-radius: 12px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+        margin-top: 24px;
+    }
+    .other-providers h3 { font-size: 16px; color: #2b2d42; font-weight: 600; margin-bottom: 14px; }
+    .provider-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+    .provider-link {
+        padding: 8px 18px;
+        background: rgba(102,126,234,0.08);
+        color: #667eea;
+        text-decoration: none;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 600;
+        transition: all 0.2s;
+    }
+    .provider-link:hover { background: #667eea; color: #fff; }
+
+    @media (max-width: 768px) {
+        .sentiment-stats { grid-template-columns: 1fr; }
+        .article-title { flex-direction: column; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>{{ provider }}</h1>
+    <a href="{{ url_for('main.dashboard') }}" class="read-button">&larr; Dashboard</a>
+</div>
+
+{% if error %}
+<div class="error-card">
+    <h3>{{ error }}</h3>
+    <p>The feed from <strong>{{ provider }}</strong> could not be loaded at this time.</p>
+    <a href="{{ url_for('main.dashboard') }}">&larr; Back to Dashboard</a>
+</div>
+
+{% if available_providers %}
+<div class="other-providers">
+    <h3>Try Other Providers</h3>
+    <div class="provider-list">
+        {% for prov in available_providers %}
+        <a href="{{ url_for('main.feed', provider=prov) }}" class="provider-link">{{ prov }}</a>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+{% else %}
+
+{% if sentiment_stats and sentiment_stats.positive %}
+<div class="sentiment-stats">
+    <div class="stat-card pos">
+        <h5>Positive</h5>
+        <div class="stat-value">{{ "%.1f"|format(sentiment_stats.positive_pct) }}%</div>
+        <p>{{ sentiment_stats.positive }} articles</p>
+    </div>
+    <div class="stat-card neg">
+        <h5>Negative</h5>
+        <div class="stat-value">{{ "%.1f"|format(sentiment_stats.negative_pct) }}%</div>
+        <p>{{ sentiment_stats.negative }} articles</p>
+    </div>
+    <div class="stat-card neu">
+        <h5>Neutral</h5>
+        <div class="stat-value">{{ "%.1f"|format(sentiment_stats.neutral_pct) }}%</div>
+        <p>{{ sentiment_stats.neutral }} articles</p>
+    </div>
+</div>
+{% endif %}
+
+{% if articles %}
+{% for article in articles %}
+<div class="article-card">
+    <div class="article-title">
+        <span>{{ article.title }}</span>
+        {% if article.sentiment %}
+        <span class="sentiment-badge sentiment-{{ article.sentiment }}">
+            {% if article.sentiment == 'positive' %}Positive
+            {% elif article.sentiment == 'negative' %}Negative
+            {% else %}Neutral{% endif %}
+        </span>
+        {% endif %}
+    </div>
+    <div class="article-meta">
+        <strong>Source:</strong> {{ article.source }} &middot; <strong>Published:</strong> {{ article.published }}
+    </div>
+    <div class="article-summary"{% if not article.summary %} style="display:none"{% endif %}>{{ article.summary or '' }}</div>
+    <a href="{{ article.link }}" target="_blank" class="read-button">Read Full Article</a>
+    <button type="button" class="btn-summarize" data-article-id="{{ article.id }}"
+            {% if article.summary %}style="display:none"{% endif %}>
+        Summarize
+    </button>
+</div>
+{% endfor %}
+
+<div class="pagination">
+    {% if page > 1 %}
+    <a href="{{ url_for('main.feed', provider=provider, page=page - 1) }}">&larr; Previous</a>
+    {% endif %}
+    <span>Page {{ page }} of {{ total_pages }}</span>
+    {% if page < total_pages %}
+    <a href="{{ url_for('main.feed', provider=provider, page=page + 1) }}">Next &rarr;</a>
+    {% endif %}
+</div>
+{% else %}
+<div class="empty-state">
+    <p>No articles available from {{ provider }} at the moment.</p>
+    <p>Please check back later!</p>
+</div>
+{% endif %}
+
+{% if available_providers %}
+<div class="other-providers">
+    <h3>Other Available Providers</h3>
+    <div class="provider-list">
+        {% for prov in available_providers %}
+        {% if prov != provider %}
+        <a href="{{ url_for('main.feed', provider=prov) }}" class="provider-link">{{ prov }}</a>
+        {% endif %}
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+{% endif %}
+
+<script>
+document.querySelectorAll('.btn-summarize').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+        var id = parseInt(this.dataset.articleId);
+        var el = this;
+        el.disabled = true;
+        el.textContent = 'Summarizing…';
+        fetch('/api/summarize', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({article_id: id})
+        })
+        .then(function(r) { return r.json().then(function(d) { return {ok: r.ok, data: d}; }); })
+        .then(function(res) {
+            if (res.ok && res.data.summary) {
+                var card = el.closest('.news-card, .article-card');
+                var summaryEl = card ? card.querySelector('.card-summary, .article-summary') : null;
+                if (summaryEl) {
+                    summaryEl.textContent = res.data.summary;
+                    summaryEl.style.display = '';
+                }
+                el.style.display = 'none';
+            } else {
+                el.textContent = 'Failed — retry';
+                el.disabled = false;
+            }
+        })
+        .catch(function() {
+            el.textContent = 'Failed — retry';
+            el.disabled = false;
+        });
+    });
+});
+</script>
+{% endblock %}

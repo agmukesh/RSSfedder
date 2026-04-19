@@ -5,177 +5,270 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}NEWS RSS READER{% endblock %}</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f0f2f5;
-            color: #333;
+            background: #f4f6fa;
+            display: flex;
+            min-height: 100vh;
         }
-        
-    header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        padding: 30px 20px;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        text-align: center;
-    }
-    
-    header h1 {
-        margin: 0 0 12px;
-        font-size: 32px;
-    }
-    
-    header form {
-        display: flex;
-        gap: 10px;
-        width: 100%;
-        max-width: 600px;
-        justify-content: center;
-        align-items: center;
-    }
-            
-        header input[type="text"] {
-            flex: 1;
-            padding: 12px 15px;
-            border: none;
-            border-radius: 4px;
-            font-size: 16px;
+
+        /* ── Sidebar ── */
+        .sidebar {
+            width: 250px;
+            background: #2b2d42;
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            top: 0; left: 0; bottom: 0;
+            z-index: 10;
         }
-        
-        header button {
-            padding: 12px 35px;
-            background-color: #fff;
-            color: #667eea;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: background-color 0.3s;
-        }
-        
-        header button:hover {
-            background-color: #f0f0f0;
-        }
-        
-        main {
-            max-width: 1000px;
-            margin: 30px auto;
-            padding: 0 20px;
-        }
-        
-        article {
-            background-color: white;
-            padding: 20px;
-            margin-bottom: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-        
-        article:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        }
-        
-        article h2 {
-            margin-bottom: 10px;
+        .sidebar-brand {
+            padding: 25px 20px;
             font-size: 22px;
+            font-weight: 700;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            letter-spacing: 0.5px;
         }
-        
-        article h2 a {
-            color: #667eea;
+        .sidebar-brand a { color: #fff; text-decoration: none; }
+        .sidebar-nav { flex: 1; padding: 15px 0; }
+        .sidebar-section {
+            padding: 10px 20px 5px;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: rgba(255,255,255,0.35);
+        }
+        .sidebar-nav a {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 20px;
+            color: rgba(255,255,255,0.7);
             text-decoration: none;
+            font-size: 14px;
+            transition: all 0.2s;
+            border-left: 3px solid transparent;
         }
-        
-        article h2 a:hover {
-            text-decoration: underline;
+        .sidebar-nav a:hover { background: rgba(255,255,255,0.06); color: #fff; }
+        .sidebar-nav a.active { background: rgba(102,126,234,0.18); color: #667eea; border-left-color: #667eea; font-weight: 600; }
+        .sidebar-nav a .icon { width: 20px; text-align: center; font-size: 16px; }
+
+        /* Sidebar search */
+        .sidebar-search {
+            padding: 12px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
         }
-        
-        article .source {
-            color: #999;
+        .sidebar-search form { display: flex; gap: 6px; }
+        .sidebar-search input {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 6px;
+            background: rgba(255,255,255,0.08);
+            color: #fff;
             font-size: 13px;
-            margin-bottom: 8px;
         }
-        
-        article .published {
-            color: #999;
-            font-size: 13px;
+        .sidebar-search input::placeholder { color: rgba(255,255,255,0.4); }
+        .sidebar-search input:focus { outline: none; border-color: #667eea; background: rgba(255,255,255,0.12); }
+        .sidebar-search button {
+            padding: 8px 14px;
+            background: #667eea;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
         }
-        
+        .sidebar-search button:hover { background: #764ba2; }
+
+        .sidebar-user {
+            padding: 18px 20px;
+            border-top: 1px solid rgba(255,255,255,0.08);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .sidebar-user .avatar {
+            width: 36px; height: 36px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 700; font-size: 15px;
+        }
+        .sidebar-user .info { flex: 1; }
+        .sidebar-user .info .name { font-size: 14px; font-weight: 600; }
+        .sidebar-user .info .role { font-size: 11px; color: rgba(255,255,255,0.45); }
+        .sidebar-user .logout-btn {
+            color: rgba(255,255,255,0.5);
+            text-decoration: none;
+            font-size: 18px;
+            transition: color 0.2s;
+        }
+        .sidebar-user .logout-btn:hover { color: #e85d5d; }
+
+        /* ── Main content ── */
+        .main-content { flex: 1; margin-left: 250px; padding: 30px; }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 28px;
+        }
+        .page-header h1 { font-size: 26px; color: #2b2d42; font-weight: 700; }
+        .page-header .header-sub { color: #8d91a0; font-size: 14px; }
+
+        /* ── Fetch banner ── */
+        .fetch-banner {
+            display: none;
+            position: fixed;
+            top: 0; left: 250px; right: 0;
+            background: #fff3cd;
+            color: #856404;
+            text-align: center;
+            padding: 10px;
+            font-size: 14px;
+            border-bottom: 1px solid #ffc107;
+            z-index: 100;
+        }
+
+        /* ── Cards ── */
+        .card {
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+            overflow: hidden;
+        }
+        .card-header {
+            padding: 18px 22px;
+            border-bottom: 1px solid #f0f1f5;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .card-header h3 { font-size: 16px; color: #2b2d42; font-weight: 600; }
+        .card-body { padding: 22px; }
+
+        /* ── Pagination ── */
         .pagination {
             display: flex;
             justify-content: center;
-            gap: 15px;
-            margin: 40px 0;
+            gap: 12px;
+            margin: 30px 0;
             align-items: center;
         }
-        
         .pagination a {
-            padding: 10px 20px;
-            background-color: #667eea;
-            color: white;
+            padding: 8px 20px;
+            background: #667eea;
+            color: #fff;
             text-decoration: none;
-            border-radius: 4px;
-            transition: background-color 0.3s;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            transition: background 0.2s;
         }
-        
-        .pagination a:hover {
-            background-color: #764ba2;
-        }
-        
-        .pagination span {
-            font-weight: bold;
-            color: #333;
-        }
-        
-        .nav-links {
-            margin-bottom: 20px;
-        }
-        
-        .nav-links a {
-            color: #007bff;
-            text-decoration: none;
-            margin-right: 15px;
-        }
-        
-        .nav-links a:hover {
-            text-decoration: underline;
-        }
-        
-        footer {
-            background-color: #333;
-            color: white;
+        .pagination a:hover { background: #764ba2; }
+        .pagination span { font-weight: 600; color: #8d91a0; font-size: 14px; }
+
+        /* ── Flash messages ── */
+        .flash-messages { margin-bottom: 20px; }
+        .flash-message { padding: 12px 18px; border-radius: 8px; font-size: 14px; margin-bottom: 10px; }
+        .flash-message.error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .flash-message.success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .flash-message.info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+
+        /* ── Empty state ── */
+        .empty-state {
             text-align: center;
-            padding: 20px;
-            margin-top: 50px;
+            padding: 60px 20px;
+            color: #8d91a0;
+        }
+        .empty-state p { font-size: 16px; margin-bottom: 12px; }
+        .empty-state a { color: #667eea; text-decoration: none; font-weight: 600; }
+        .empty-state a:hover { text-decoration: underline; }
+
+        /* ── Responsive ── */
+        @media (max-width: 768px) {
+            .sidebar { display: none; }
+            .main-content { margin-left: 0; padding: 20px; }
+            .fetch-banner { left: 0; }
         }
     </style>
     {% block extra_css %}{% endblock %}
 </head>
 <body>
-    <header>
-        <h1>NEWS RSS READER</h1>
-        <form action="/search" method="get">
-            <input type="text" name="q" placeholder="Search news...">
-            <button type="submit">Search</button>
-        </form>
-    </header>
-    
-    <main>
+    {% if session.get('user') %}
+    <aside class="sidebar">
+        <div class="sidebar-brand"><a href="{{ url_for('main.index') }}">RSS Fedder</a></div>
+        <div class="sidebar-search">
+            <form action="/search" method="get">
+                <input type="text" name="q" placeholder="Search articles...">
+                <button type="submit">Go</button>
+            </form>
+        </div>
+        <nav class="sidebar-nav">
+            <div class="sidebar-section">Navigation</div>
+            <a href="{{ url_for('main.dashboard') }}" class="{% if request.endpoint == 'main.dashboard' %}active{% endif %}">
+                <span class="icon">&#9776;</span> Dashboard
+            </a>
+            <a href="{{ url_for('main.index') }}" class="{% if request.endpoint == 'main.index' %}active{% endif %}">
+                <span class="icon">&#128240;</span> News Feed
+            </a>
+
+            <div class="sidebar-section">Tools</div>
+            <a href="{{ url_for('main.bookmarks') }}" class="{% if request.endpoint == 'main.bookmarks' %}active{% endif %}">
+                <span class="icon">&#9733;</span> Bookmarks
+            </a>
+            <a href="{{ url_for('main.manage_feeds') }}" class="{% if request.endpoint == 'main.manage_feeds' %}active{% endif %}">
+                <span class="icon">&#9881;</span> Manage Feeds
+            </a>
+        </nav>
+        <div class="sidebar-user">
+            <div class="avatar">{{ session.get('user', '?')[0]|upper }}</div>
+            <div class="info">
+                <div class="name">{{ session.get('user') }}</div>
+                <div class="role">Reader</div>
+            </div>
+            <a href="{{ url_for('auth.logout') }}" class="logout-btn" title="Logout">&#10140;</a>
+        </div>
+    </aside>
+    {% endif %}
+
+    <div class="main-content">
+        <div id="fetch-banner" class="fetch-banner">
+            Updating feeds in background... &#8987;
+        </div>
         {% block content %}{% endblock %}
-    </main>
-    
-    <footer>
-        <p>&copy; 2024 NEWS RSS READER</p>
-    </footer>
+    </div>
+
+    {% if session.get('user') %}
+    <script>
+    (function() {
+        var banner = document.getElementById('fetch-banner');
+        if (!banner) return;
+        var wasFetching = false;
+        function checkStatus() {
+            fetch('/api/fetch-status')
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    if (data.fetching) {
+                        banner.style.display = 'block';
+                        wasFetching = true;
+                        setTimeout(checkStatus, 3000);
+                    } else {
+                        banner.style.display = 'none';
+                        if (wasFetching) { location.reload(); }
+                    }
+                })
+                .catch(function() { banner.style.display = 'none'; });
+        }
+        checkStatus();
+    })();
+    </script>
+    {% endif %}
 </body>
 </html>

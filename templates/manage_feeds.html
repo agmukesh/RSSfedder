@@ -1,0 +1,351 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Feeds - NEWS RSS READER{% endblock %}
+
+{% block extra_css %}
+<style>
+    .add-form {
+        background: #fff;
+        padding: 22px;
+        border-radius: 12px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+        margin-bottom: 28px;
+    }
+    .add-form h3 { font-size: 16px; color: #2b2d42; font-weight: 600; margin-bottom: 16px; }
+    .add-form .form-row {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        align-items: flex-end;
+    }
+    .add-form .form-group { flex: 1; min-width: 180px; }
+    .add-form label { display: block; font-size: 12px; font-weight: 600; color: #8d91a0; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.3px; }
+    .add-form input, .add-form select {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        font-size: 14px;
+        color: #2b2d42;
+        background: #f8f9fb;
+    }
+    .add-form input:focus, .add-form select:focus { outline: none; border-color: #667eea; background: #fff; }
+    .add-form button {
+        padding: 10px 24px;
+        background: #667eea;
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background 0.2s;
+        white-space: nowrap;
+    }
+    .add-form button:hover { background: #764ba2; }
+
+    .section-title {
+        font-size: 16px;
+        font-weight: 600;
+        color: #2b2d42;
+        margin: 28px 0 14px;
+    }
+    .category-label {
+        font-size: 14px;
+        font-weight: 600;
+        color: #667eea;
+        margin: 20px 0 10px;
+    }
+
+    .feeds-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 14px;
+    }
+    .feed-card {
+        background: #fff;
+        border-radius: 12px;
+        padding: 18px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+    .feed-card-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 12px;
+    }
+    .feed-info { flex: 1; min-width: 0; }
+    .feed-info .feed-name { font-weight: 600; color: #2b2d42; font-size: 15px; overflow-wrap: anywhere; word-break: break-word; }
+    .feed-info .feed-url {
+        font-size: 12px;
+        color: #8d91a0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    .feed-info .feed-cat {
+        display: inline-block;
+        margin-top: 6px;
+        padding: 3px 10px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 600;
+        background: rgba(102,126,234,0.1);
+        color: #667eea;
+    }
+
+    .feed-actions { display: flex; gap: 8px; flex-shrink: 0; align-items: center; }
+    .feed-toggle { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #8d91a0; font-weight: 600; cursor: pointer; user-select: none; }
+    .feed-toggle input { width: 16px; height: 16px; cursor: pointer; accent-color: #667eea; }
+    .feed-actions .edit-btn {
+        background: none;
+        border: 1px solid #667eea;
+        color: #667eea;
+        padding: 6px 14px;
+        border-radius: 6px;
+        font-size: 13px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: all 0.2s;
+    }
+    .feed-actions .edit-btn:hover { background: #667eea; color: #fff; }
+    .feed-actions .delete-btn {
+        background: none;
+        border: 1px solid #e85d5d;
+        color: #e85d5d;
+        padding: 6px 14px;
+        border-radius: 6px;
+        font-size: 13px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: all 0.2s;
+    }
+    .feed-actions .delete-btn:hover { background: #e85d5d; color: #fff; }
+
+    .edit-form {
+        display: none;
+        border-top: 1px solid #f0f1f5;
+        padding-top: 12px;
+    }
+    .edit-form.active { display: block; }
+    .edit-form .edit-row {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        align-items: flex-end;
+    }
+    .edit-form .edit-group { flex: 1; min-width: 120px; }
+    .edit-form label { display: block; font-size: 11px; font-weight: 600; color: #8d91a0; margin-bottom: 4px; }
+    .edit-form input, .edit-form select {
+        width: 100%;
+        padding: 7px 10px;
+        border: 1px solid #e5e7eb;
+        border-radius: 6px;
+        font-size: 13px;
+        color: #2b2d42;
+    }
+    .edit-form input:focus, .edit-form select:focus { outline: none; border-color: #667eea; }
+    .edit-form-actions { display: flex; gap: 8px; margin-top: 10px; }
+    .edit-form .save-btn {
+        padding: 7px 18px;
+        background: #667eea;
+        color: #fff;
+        border: none;
+        border-radius: 6px;
+        font-weight: 600;
+        cursor: pointer;
+        font-size: 13px;
+        transition: background 0.2s;
+    }
+    .edit-form .save-btn:hover { background: #764ba2; }
+    .edit-form .cancel-btn {
+        padding: 7px 18px;
+        background: #f0f1f5;
+        color: #8d91a0;
+        border: none;
+        border-radius: 6px;
+        font-weight: 600;
+        cursor: pointer;
+        font-size: 13px;
+        transition: background 0.2s;
+    }
+    .edit-form .cancel-btn:hover { background: #e5e7eb; color: #2b2d42; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Manage Feeds</h1>
+</div>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+<div class="flash-messages">
+    {% for category, message in messages %}
+    <div class="flash-message {{ category }}">{{ message }}</div>
+    {% endfor %}
+</div>
+{% endif %}
+{% endwith %}
+
+<div class="add-form">
+    <h3>Add Custom Feed</h3>
+    <form method="POST">
+        <input type="hidden" name="action" value="add">
+        <div class="form-row">
+            <div class="form-group">
+                <label for="name">Feed Name</label>
+                <input type="text" id="name" name="name" required placeholder="e.g. My Tech Blog">
+            </div>
+            <div class="form-group">
+                <label for="url">RSS Feed URL</label>
+                <input type="text" id="url" name="url" required placeholder="https://example.com/feed.xml">
+            </div>
+            <div class="form-group" style="max-width: 180px;">
+                <label for="category">Category</label>
+                <select id="category" name="category">
+                    {% for cat in categories %}
+                    <option value="{{ cat }}">{{ cat }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button type="submit">Add Feed</button>
+        </div>
+    </form>
+</div>
+
+{% if user_feeds %}
+<div class="section-title">Your Custom Feeds</div>
+<div class="feeds-grid">
+    {% for feed in user_feeds %}
+    <div class="feed-card" id="feed-card-{{ feed.id }}">
+        <div class="feed-card-top">
+            <div class="feed-info">
+                <div class="feed-name">{{ feed.name }}</div>
+                <div class="feed-url">{{ feed.url }}</div>
+                <span class="feed-cat">{{ feed.category }}</span>
+            </div>
+            <div class="feed-actions">
+                <label class="feed-toggle" title="Fetch articles from this feed">
+                    <input type="checkbox" {% if feed.enabled %}checked{% endif %} onchange="toggleFeed({{ feed.id }}, this)">
+                    Enabled
+                </label>
+                <button type="button" class="edit-btn" onclick="toggleEdit({{ feed.id }})">Edit</button>
+                <form method="POST" style="margin:0;" onsubmit="return confirm('Remove this feed?')">
+                    <input type="hidden" name="action" value="delete">
+                    <input type="hidden" name="feed_id" value="{{ feed.id }}">
+                    <button type="submit" class="delete-btn">Delete</button>
+                </form>
+            </div>
+        </div>
+        <div class="edit-form" id="edit-form-{{ feed.id }}">
+            <form method="POST">
+                <input type="hidden" name="action" value="edit">
+                <input type="hidden" name="feed_id" value="{{ feed.id }}">
+                <div class="edit-row">
+                    <div class="edit-group">
+                        <label>Name</label>
+                        <input type="text" name="name" value="{{ feed.name }}" required>
+                    </div>
+                    <div class="edit-group">
+                        <label>URL</label>
+                        <input type="text" name="url" value="{{ feed.url }}" required>
+                    </div>
+                    <div class="edit-group" style="max-width: 160px;">
+                        <label>Category</label>
+                        <select name="category">
+                            {% for cat in categories %}
+                            <option value="{{ cat }}" {% if cat == feed.category %}selected{% endif %}>{{ cat }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="edit-form-actions">
+                    <button type="submit" class="save-btn">Save</button>
+                    <button type="button" class="cancel-btn" onclick="toggleEdit({{ feed.id }})">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<div class="section-title">Default Feed Sources</div>
+{% set ns = namespace(current_cat='') %}
+{% for feed in default_feeds %}
+    {% if feed.category != ns.current_cat %}
+        {% if ns.current_cat != '' %}</div>{% endif %}
+        {% set ns.current_cat = feed.category %}
+        <div class="category-label">{{ feed.category }}</div>
+        <div class="feeds-grid">
+    {% endif %}
+    <div class="feed-card" id="feed-card-{{ feed.id }}">
+        <div class="feed-card-top">
+            <div class="feed-info">
+                <div class="feed-name">{{ feed.name }}</div>
+                <div class="feed-url">{{ feed.url }}</div>
+            </div>
+            <div class="feed-actions">
+                <label class="feed-toggle" title="Fetch articles from this feed">
+                    <input type="checkbox" {% if feed.enabled %}checked{% endif %} onchange="toggleFeed({{ feed.id }}, this)">
+                    Enabled
+                </label>
+                <button type="button" class="edit-btn" onclick="toggleEdit({{ feed.id }})">Edit</button>
+                <form method="POST" style="margin:0;" onsubmit="return confirm('Delete this default feed?')">
+                    <input type="hidden" name="action" value="delete">
+                    <input type="hidden" name="feed_id" value="{{ feed.id }}">
+                    <button type="submit" class="delete-btn">Delete</button>
+                </form>
+            </div>
+        </div>
+        <div class="edit-form" id="edit-form-{{ feed.id }}">
+            <form method="POST">
+                <input type="hidden" name="action" value="edit">
+                <input type="hidden" name="feed_id" value="{{ feed.id }}">
+                <div class="edit-row">
+                    <div class="edit-group">
+                        <label>Name</label>
+                        <input type="text" name="name" value="{{ feed.name }}" required>
+                    </div>
+                    <div class="edit-group">
+                        <label>URL</label>
+                        <input type="text" name="url" value="{{ feed.url }}" required>
+                    </div>
+                    <div class="edit-group" style="max-width: 160px;">
+                        <label>Category</label>
+                        <select name="category">
+                            {% for cat in categories %}
+                            <option value="{{ cat }}" {% if cat == feed.category %}selected{% endif %}>{{ cat }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="edit-form-actions">
+                    <button type="submit" class="save-btn">Save</button>
+                    <button type="button" class="cancel-btn" onclick="toggleEdit({{ feed.id }})">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+{% endfor %}
+{% if default_feeds %}</div>{% endif %}
+
+<script>
+function toggleEdit(feedId) {
+    var form = document.getElementById('edit-form-' + feedId);
+    form.classList.toggle('active');
+}
+function toggleFeed(feedId, checkbox) {
+    var body = new FormData();
+    body.append('action', 'toggle');
+    body.append('feed_id', feedId);
+    body.append('enabled', checkbox.checked ? '1' : '0');
+    fetch('{{ url_for("main.manage_feeds") }}', { method: 'POST', body: body, redirect: 'manual' })
+        .catch(function () { checkbox.checked = !checkbox.checked; });
+}
+</script>
+{% endblock %}

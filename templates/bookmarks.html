@@ -1,68 +1,9 @@
 {% extends "base.html" %}
 
-{% block title %}Home - NEWS RSS READER{% endblock %}
+{% block title %}Bookmarks - NEWS RSS READER{% endblock %}
 
 {% block extra_css %}
 <style>
-    /* ── Category tabs ── */
-    .category-tabs {
-        display: flex;
-        gap: 8px;
-        flex-wrap: wrap;
-        margin-bottom: 20px;
-    }
-    .category-tabs a {
-        padding: 8px 18px;
-        border-radius: 8px;
-        text-decoration: none;
-        font-size: 13px;
-        font-weight: 500;
-        color: #8d91a0;
-        background: #fff;
-        border: 1px solid #e5e7eb;
-        transition: all 0.15s;
-    }
-    .category-tabs a:hover { color: #2b2d42; border-color: #d1d5db; }
-    .category-tabs a.active {
-        background: #667eea;
-        color: #fff;
-        border-color: #667eea;
-    }
-
-    /* ── Source filter ── */
-    .source-filter {
-        display: flex;
-        gap: 6px;
-        flex-wrap: wrap;
-        margin-bottom: 24px;
-        align-items: center;
-    }
-    .source-filter .filter-label {
-        font-size: 12px;
-        font-weight: 600;
-        color: #8d91a0;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        margin-right: 6px;
-    }
-    .source-filter a {
-        padding: 5px 14px;
-        border-radius: 20px;
-        text-decoration: none;
-        font-size: 12px;
-        font-weight: 500;
-        color: #667eea;
-        background: rgba(102,126,234,0.08);
-        border: 1px solid transparent;
-        transition: all 0.15s;
-    }
-    .source-filter a:hover { background: rgba(102,126,234,0.15); }
-    .source-filter a.active {
-        background: #667eea;
-        color: #fff;
-    }
-
-    /* ── Category color map ── */
     :root {
         --cat-finance: #6366f1;
         --cat-technology: #0891b2;
@@ -74,7 +15,6 @@
         --cat-other: #6b7280;
     }
 
-    /* ── News card ── */
     .news-card {
         background: #fff;
         border-radius: 12px;
@@ -138,18 +78,17 @@
     .card-source.other { color: var(--cat-other); }
     .card-source .dot { color: #d1d5db; margin: 0 6px; }
 
-    .bm-btn {
+    .remove-btn {
         background: none;
         border: none;
-        font-size: 20px;
+        font-size: 13px;
         cursor: pointer;
-        color: #d1d5db;
+        color: #8d91a0;
+        font-weight: 500;
         transition: color 0.15s;
-        padding: 2px 4px;
-        line-height: 1;
+        padding: 2px 8px;
     }
-    .bm-btn:hover { color: #f59e0b; }
-    .bm-btn.saved { color: #f59e0b; }
+    .remove-btn:hover { color: #e85d5d; }
 
     .btn-summarize {
         background: #eef2ff;
@@ -186,7 +125,6 @@
         -webkit-box-orient: vertical;
         margin-bottom: 8px;
     }
-
     .card-meta-bottom {
         display: flex;
         align-items: center;
@@ -215,28 +153,12 @@
 {% endblock %}
 
 {% block content %}
-    <div class="page-header">
-        <h1>{% if current_category %}{{ current_category }}{% else %}News Feed{% endif %}</h1>
-        <div class="header-sub">{{ page }} of {{ total_pages }} pages</div>
-    </div>
+<div class="page-header">
+    <h1>Bookmarks</h1>
+    <div class="header-sub">{{ articles|length }} saved article{{ 's' if articles|length != 1 else '' }}</div>
+</div>
 
-    <div class="category-tabs">
-        <a href="/?page=1" class="{% if not current_category %}active{% endif %}">All</a>
-        {% for cat in categories %}
-        <a href="/?category={{ cat }}&page=1" class="{% if current_category == cat %}active{% endif %}">{{ cat }}</a>
-        {% endfor %}
-    </div>
-
-    {% if sources %}
-    <div class="source-filter">
-        <span class="filter-label">Source:</span>
-        <a href="/?{% if current_category %}category={{ current_category }}&{% endif %}page=1" class="{% if not current_source %}active{% endif %}">All</a>
-        {% for src in sources %}
-        <a href="/?{% if current_category %}category={{ current_category }}&{% endif %}source={{ src }}&page=1" class="{% if current_source == src %}active{% endif %}">{{ src }}</a>
-        {% endfor %}
-    </div>
-    {% endif %}
-
+{% if articles %}
     {% for article in articles %}
     {% set cat_class = article.category|lower|replace(' ', '-') if article.category else 'other' %}
     <div class="news-card">
@@ -258,10 +180,7 @@
                 <span class="card-source {{ cat_class }}">
                     {{ article.source }}<span class="dot">&middot;</span>{{ article.category or 'Other' }}
                 </span>
-                <button type="button" class="bm-btn {% if article.id in bookmarked_ids %}saved{% endif %}"
-                        data-id="{{ article.id }}">
-                    {% if article.id in bookmarked_ids %}&#9733;{% else %}&#9734;{% endif %}
-                </button>
+                <button type="button" class="remove-btn" data-id="{{ article.id }}">Remove</button>
                 <button type="button" class="btn-summarize" data-article-id="{{ article.id }}"
                         {% if article.summary %}style="display:none"{% endif %}>
                     Summarize
@@ -282,76 +201,66 @@
             </div>
         </div>
     </div>
-    {% else %}
-    <div class="empty-state">
-        <p>No articles found. Check back soon!</p>
-    </div>
     {% endfor %}
-
-    <div class="pagination">
-        {% if page > 1 %}
-        <a href="/?page={{ page - 1 }}{% if current_category %}&category={{ current_category }}{% endif %}{% if current_source %}&source={{ current_source }}{% endif %}">&larr; Previous</a>
-        {% endif %}
-        <span>Page {{ page }} of {{ total_pages }}</span>
-        {% if page < total_pages %}
-        <a href="/?page={{ page + 1 }}{% if current_category %}&category={{ current_category }}{% endif %}{% if current_source %}&source={{ current_source }}{% endif %}">Next &rarr;</a>
-        {% endif %}
+{% else %}
+    <div class="empty-state">
+        <p>No bookmarked articles yet.</p>
+        <a href="{{ url_for('main.index') }}">Browse News Feed &rarr;</a>
     </div>
+{% endif %}
 
-    <script>
-    document.querySelectorAll('.bm-btn').forEach(function(btn) {
-        btn.addEventListener('click', function() {
-            var id = this.dataset.id;
-            var el = this;
-            fetch('/api/bookmark', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({article_id: parseInt(id)})
-            })
-            .then(function(r) { return r.json(); })
-            .then(function(data) {
-                if (data.bookmarked) {
-                    el.classList.add('saved');
-                    el.innerHTML = '&#9733;';
-                } else {
-                    el.classList.remove('saved');
-                    el.innerHTML = '&#9734;';
-                }
-            });
+<script>
+document.querySelectorAll('.remove-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+        var id = this.dataset.id;
+        var card = this.closest('.news-card');
+        fetch('/api/bookmark', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({article_id: parseInt(id)})
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            if (!data.bookmarked) {
+                card.style.transition = 'opacity 0.3s';
+                card.style.opacity = '0';
+                setTimeout(function() { card.remove(); }, 300);
+            }
         });
     });
+});
 
-    document.querySelectorAll('.btn-summarize').forEach(function(btn) {
-        btn.addEventListener('click', function() {
-            var id = parseInt(this.dataset.articleId);
-            var el = this;
-            el.disabled = true;
-            el.textContent = 'Summarizing…';
-            fetch('/api/summarize', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({article_id: id})
-            })
-            .then(function(r) { return r.json().then(function(d) { return {ok: r.ok, data: d}; }); })
-            .then(function(res) {
-                if (res.ok && res.data.summary) {
-                    var card = el.closest('.news-card, .article-card');
-                    var summaryEl = card ? card.querySelector('.card-summary, .article-summary') : null;
-                    if (summaryEl) {
-                        summaryEl.textContent = res.data.summary;
-                        summaryEl.style.display = '';
-                    }
-                    el.style.display = 'none';
-                } else {
-                    el.textContent = 'Failed — retry';
-                    el.disabled = false;
+document.querySelectorAll('.btn-summarize').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+        var id = parseInt(this.dataset.articleId);
+        var el = this;
+        el.disabled = true;
+        el.textContent = 'Summarizing…';
+        fetch('/api/summarize', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({article_id: id})
+        })
+        .then(function(r) { return r.json().then(function(d) { return {ok: r.ok, data: d}; }); })
+        .then(function(res) {
+            if (res.ok && res.data.summary) {
+                var card = el.closest('.news-card, .article-card');
+                var summaryEl = card ? card.querySelector('.card-summary, .article-summary') : null;
+                if (summaryEl) {
+                    summaryEl.textContent = res.data.summary;
+                    summaryEl.style.display = '';
                 }
-            })
-            .catch(function() {
+                el.style.display = 'none';
+            } else {
                 el.textContent = 'Failed — retry';
                 el.disabled = false;
-            });
+            }
+        })
+        .catch(function() {
+            el.textContent = 'Failed — retry';
+            el.disabled = false;
         });
     });
-    </script>
+});
+</script>
 {% endblock %}

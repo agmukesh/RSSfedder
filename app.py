@@ -1,56 +1,40 @@
-import feedparser
-from flask import Flask, render_template,request
+"""Entry point for the RSSfedder Flask app.
+
+Creates the Flask application, loads the SECRET_KEY, registers the `auth` and
+`main` blueprints, initializes the SQLite database (schema + seed default
+user/feeds), and starts the background periodic feed-fetch thread. The
+WERKZEUG_RUN_MAIN guard prevents the fetch thread from being started twice
+under Flask's debug reloader.
+"""
+
+import os
+import warnings
+from logging_config import configure_logging
+
+configure_logging()
+
+from flask import Flask
+from db import init_db, seed_default_feeds, seed_default_user
+from auth import auth_bp
+from routes import main_bp
+from feeds import start_periodic_fetch
 
 app = Flask(__name__)
+app.secret_key = os.environ.get('SECRET_KEY')
+if not app.secret_key:
+    warnings.warn("SECRET_KEY not set in .env -- using random key (sessions will not persist across restarts)")
+    app.secret_key = os.urandom(24).hex()
 
-RSS_FEED_URL = {
-    'Yahoo Finance': 'https://finance.yahoo.com/news/rssindex',
-    'CNBCTV 18': 'https://www.cnbctv18.com/market/rssfeed.xml',
-    'Money Control': 'https://www.moneycontrol.com/rss/MCtopnews.xml',
-    'Economic Times': 'https://economictimes.indiatimes.com/markets/rssfeeds/1977021501.cms',
-    'Business Standard': 'https://www.business-standard.com/rss/home_page_top_stories.rss',
-    'Livemint': 'https://www.livemint.com/rss/news',
-}
+app.register_blueprint(auth_bp)
+app.register_blueprint(main_bp)
 
-@app.route("/", methods=['GET', 'POST'])
-
-def index():
-    articles = []
-    for source, url in RSS_FEED_URL.items():
-        feed = feedparser.parse(url)
-        for entry in feed.entries:
-            articles.append({
-                'source': source,
-                'title': entry.title,
-                'link': entry.link,
-                'published': entry.published
-            })
-    articles.sort(key=lambda x: x['published'], reverse=True)
-
-    page=request.args.get('page', 1, type=int)
-    per_page=10
-    total_articles=len(articles)
-    start=(page-1)*per_page
-    end=start+per_page
-    paginated_articles=articles[start:end]
-
-    return render_template('index.html', articles=paginated_articles, page=page, total_pages=(total_articles + per_page - 1) // per_page)
-@app.route('/search')
-def search():
-    query = request.args.get('q', '')
-    articles = []
-    for source, url in RSS_FEED_URL.items():
-        feed = feedparser.parse(url)
-        for entry in feed.entries:
-            if query.lower() in entry.title.lower():
-                articles.append({
-                    'source': source,
-                    'title': entry.title,
-                    'link': entry.link,
-                    'published': entry.published
-                })
-    return render_template('search.html', articles=articles, query=query) 
+# Initialize database on startup
+init_db()
+seed_default_user()
+seed_default_feeds()
 
 if __name__ == "__main__":
-    app.run(debug=True)  
-    
+    debug = os.environ.get('FLASK_DEBUG', 'false').lower() in ('true', '1', 'yes')
+    if not debug or os.environ.get('WERKZEUG_RUN_MAIN') == 'true':
+        start_periodic_fetch()
+    app.run(debug=debug)
