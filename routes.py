@@ -100,12 +100,40 @@ def dashboard():
     feeds = get_active_feeds(session['user'])
     provider_names = [f['name'] for f in feeds]
     articles = []
-    provider_counts = {}
-    for name in provider_names:
-        c.execute('SELECT COUNT(*) FROM articles WHERE provider = ?', (name,))
-        provider_counts[name] = c.fetchone()[0]
-        c.execute('SELECT * FROM articles WHERE provider = ? ORDER BY fetched_at DESC LIMIT 5', (name,))
+    provider_counts = {name: 0 for name in provider_names}
+
+    if provider_names:
+        placeholders = ','.join('?' * len(provider_names))
+
+        # Get counts for all providers in one query
+        c.execute(f'''
+            SELECT provider, COUNT(*)
+            FROM articles
+            WHERE provider IN ({placeholders})
+            GROUP BY provider
+        ''', provider_names)
         for row in c.fetchall():
+            provider_counts[row['provider']] = row[1]
+
+        # Get top 5 articles per provider in one query
+        c.execute(f'''
+            SELECT id, provider, title, link, published, content, summary, sentiment, sentiment_score, category, fetched_at
+            FROM (
+                SELECT *, ROW_NUMBER() OVER (PARTITION BY provider ORDER BY fetched_at DESC) as rn
+                FROM articles
+                WHERE provider IN ({placeholders})
+            ) WHERE rn <= 5
+        ''', provider_names)
+
+        # Sort rows to match the order of provider_names
+        rows = c.fetchall()
+        provider_order = {name: i for i, name in enumerate(provider_names)}
+        rows.sort(key=lambda r: (provider_order.get(r['provider'], 999), r['fetched_at']), reverse=True)
+        # Reverse again because we want the providers in their original order,
+        # but within each provider, sorted by fetched_at descending
+        rows.sort(key=lambda r: provider_order.get(r['provider'], 999))
+
+        for row in rows:
             articles.append(_row_to_article(row))
 
     c.execute('SELECT COUNT(*) FROM articles')
