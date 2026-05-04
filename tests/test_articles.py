@@ -1,4 +1,14 @@
+from unittest.mock import patch
 import articles
+
+
+def test_analyze_sentiment_exception():
+    """Test that analyze_sentiment handles exceptions by returning neutral/0.5."""
+    with patch('articles.analyzer') as mock_analyzer:
+        mock_analyzer.polarity_scores.side_effect = Exception("Sentiment analysis failed")
+        label, score = articles.analyze_sentiment("This text should trigger an exception")
+        assert label == 'neutral'
+        assert score == 0.5
 
 
 def test_categorize_article_uses_feed_category():
