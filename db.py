@@ -58,14 +58,16 @@ def init_db():
         FOREIGN KEY (article_id) REFERENCES articles(id) ON DELETE CASCADE
     )''')
     # Add category column if missing (migration for existing DBs)
-    try:
+    c.execute("PRAGMA table_info(articles)")
+    article_cols = [row[1] for row in c.fetchall()]
+    if 'category' not in article_cols:
         c.execute('ALTER TABLE articles ADD COLUMN category TEXT DEFAULT "Other"')
-    except sqlite3.OperationalError:
-        pass
-    try:
+
+    c.execute("PRAGMA table_info(feeds)")
+    feed_cols = [row[1] for row in c.fetchall()]
+    if 'enabled' not in feed_cols:
         c.execute('ALTER TABLE feeds ADD COLUMN enabled INTEGER DEFAULT 1')
-    except sqlite3.OperationalError:
-        pass
+
     conn.commit()
     conn.close()
 
