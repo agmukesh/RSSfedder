@@ -199,11 +199,18 @@ def get_articles_by_provider(provider, page=1, per_page=10):
     conn = sqlite3.connect(DB_FILE)
     conn.row_factory = sqlite3.Row
     c = conn.cursor()
-    c.execute('SELECT * FROM articles WHERE provider = ? ORDER BY fetched_at DESC', (provider,))
-    all_articles = c.fetchall()
-    total = len(all_articles)
+
+    # Get total count efficiently
+    c.execute('SELECT COUNT(*) FROM articles WHERE provider = ?', (provider,))
+    total = c.fetchone()[0]
+
+    # Get paginated articles
     start = (page - 1) * per_page
-    articles = [_row_to_article(r) for r in all_articles[start:start + per_page]]
+    c.execute('SELECT * FROM articles WHERE provider = ? ORDER BY fetched_at DESC LIMIT ? OFFSET ?',
+              (provider, per_page, start))
+    rows = c.fetchall()
+    articles = [_row_to_article(r) for r in rows]
+
     conn.close()
     return articles, total
 
@@ -213,7 +220,8 @@ def get_all_articles(page=1, per_page=10, category=None, source=None):
     conn = sqlite3.connect(DB_FILE)
     conn.row_factory = sqlite3.Row
     c = conn.cursor()
-    query = 'SELECT * FROM articles'
+
+    where_clause = ''
     conditions = []
     params = []
     if category:
@@ -223,13 +231,19 @@ def get_all_articles(page=1, per_page=10, category=None, source=None):
         conditions.append('provider = ?')
         params.append(source)
     if conditions:
-        query += ' WHERE ' + ' AND '.join(conditions)
-    query += ' ORDER BY fetched_at DESC'
-    c.execute(query, params)
-    all_articles = c.fetchall()
-    total = len(all_articles)
+        where_clause = ' WHERE ' + ' AND '.join(conditions)
+
+    # Get total count efficiently
+    c.execute('SELECT COUNT(*) FROM articles' + where_clause, params)
+    total = c.fetchone()[0]
+
+    # Get paginated articles
+    query = 'SELECT * FROM articles' + where_clause + ' ORDER BY fetched_at DESC LIMIT ? OFFSET ?'
     start = (page - 1) * per_page
-    articles = [_row_to_article(r) for r in all_articles[start:start + per_page]]
+    c.execute(query, params + [per_page, start])
+    rows = c.fetchall()
+    articles = [_row_to_article(r) for r in rows]
+
     conn.close()
     return articles, total
 
