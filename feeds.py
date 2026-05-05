@@ -1,8 +1,7 @@
 """RSS feed fetch pipeline and background scheduler.
 
 `fetch_and_store_articles` iterates every row in the `feeds` table, parses
-each feed with feedparser (falling back to a direct URL parse when the
-User-Agent'd requests call fails), fetches and cleans the full article body
+each feed with feedparser, fetches and cleans the full article body
 via `fetch_full_content` (HTML or PDF), runs sentiment on the title, and
 inserts via `INSERT OR IGNORE` keyed on the article `link`. Summarization is
 NOT done here — it happens on demand via `/api/summarize`. Fetches run in a
@@ -60,13 +59,14 @@ def is_fetch_in_progress():
 
 
 def _parse_feed(rss_url):
-    """Fetch and parse one RSS URL, falling back to a direct parse on request errors."""
+    """Fetch and parse one RSS URL."""
     try:
         resp = requests.get(rss_url, headers={'User-Agent': FEED_USER_AGENT}, timeout=15)
         resp.raise_for_status()
         return feedparser.parse(resp.content)
     except Exception:
-        return feedparser.parse(rss_url)
+        logger.exception("Failed to fetch feed: %s", rss_url)
+        return feedparser.parse(b"")
 
 
 def _resolve_link(entry, provider, title, published):
