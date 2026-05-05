@@ -125,12 +125,12 @@ def dashboard():
             ) WHERE rn <= 5
         ''', provider_names)
 
-        # Sort rows to match the order of provider_names
+        # Sort rows to match the order of provider_names.
+        # We leverage Python's stable sorting:
+        # First sort by fetched_at descending, then by provider_order ascending.
         rows = c.fetchall()
         provider_order = {name: i for i, name in enumerate(provider_names)}
-        rows.sort(key=lambda r: (provider_order.get(r['provider'], 999), r['fetched_at']), reverse=True)
-        # Reverse again because we want the providers in their original order,
-        # but within each provider, sorted by fetched_at descending
+        rows.sort(key=lambda r: r['fetched_at'], reverse=True)
         rows.sort(key=lambda r: provider_order.get(r['provider'], 999))
 
         for row in rows:
