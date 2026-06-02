@@ -50,8 +50,8 @@ def register():
         confirm = request.form.get("confirm_password", "")
         if len(username) < 3:
             flash("Username must be at least 3 characters.", "error")
-        elif len(password) < 4:
-            flash("Password must be at least 4 characters.", "error")
+        elif len(password) < 12:
+            flash("Password must be at least 12 characters.", "error")
         elif password != confirm:
             flash("Passwords do not match.", "error")
         elif not create_user(username, password):
@@ -86,8 +86,8 @@ def reset_password():
                 return render_template('reset_password.html', step=2, token=token)
         else:
             # Step 2: validate token and set new password
-            if len(new_password) < 4:
-                flash("Password must be at least 4 characters.", "error")
+            if len(new_password) < 12:
+                flash("Password must be at least 12 characters.", "error")
                 return render_template('reset_password.html', step=2, token=token)
             if new_password != confirm:
                 flash("Passwords do not match.", "error")
