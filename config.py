@@ -1,10 +1,9 @@
 """Application configuration and shared constants.
 
 Loads environment variables from `.env`, exposes `DB_FILE`, the list of
-`CATEGORIES`, the `DEFAULT_FEEDS` seed list, the `CATEGORY_KEYWORDS` map used
-for auto-categorization, and the shared VADER `analyzer` instance. Also
-contains a compatibility shim that restores `collections.Sequence` / `Iterable`
-/ `Mapping` on Python 3.10+ so older `sumy` imports keep working.
+`CATEGORIES`, the `DEFAULT_FEEDS` seed list, and the shared VADER `analyzer`
+instance. Also contains a compatibility shim that restores `collections.Sequence`
+/ `Iterable` / `Mapping` on Python 3.10+ so older `sumy` imports keep working.
 """
 
 import os
@@ -67,25 +66,3 @@ DEFAULT_FEEDS = [
     ('Al Jazeera', 'https://www.aljazeera.com/xml/rss/all.xml', 'World News'),
 ]
 
-# Keyword map for auto-categorizing articles
-CATEGORY_KEYWORDS = {
-    'Finance': ['stock', 'market', 'trading', 'invest', 'bank', 'finance', 'economy', 'gdp', 'inflation',
-                'crypto', 'bitcoin', 'nifty', 'sensex', 'forex', 'commodity', 'bond', 'ipo', 'dividend',
-                'revenue', 'profit', 'earnings', 'fund', 'portfolio', 'fiscal', 'monetary'],
-    'Technology': ['tech', 'software', 'ai', 'artificial intelligence', 'startup', 'app', 'cyber', 'cloud',
-                   'data', 'algorithm', 'robot', 'chip', 'semiconductor', 'internet', 'digital', 'code',
-                   'programming', 'machine learning', 'blockchain', 'saas', 'api'],
-    'Entertainment': ['movie', 'film', 'music', 'celebrity', 'hollywood', 'bollywood', 'album', 'concert',
-                      'streaming', 'netflix', 'disney', 'actor', 'actress', 'box office', 'tv show',
-                      'series', 'entertainment', 'award', 'grammy', 'oscar'],
-    'Education': ['education', 'university', 'college', 'school', 'student', 'teacher', 'curriculum',
-                  'exam', 'degree', 'scholarship', 'learning', 'academic', 'research', 'campus', 'course'],
-    'Sports': ['sports', 'cricket', 'football', 'soccer', 'tennis', 'basketball', 'nba', 'nfl', 'ipl',
-               'olympic', 'world cup', 'match', 'tournament', 'championship', 'league', 'goal', 'run',
-               'wicket', 'athlete', 'medal', 'coach', 'fifa'],
-    'Science': ['science', 'nasa', 'space', 'planet', 'climate', 'biology', 'physics', 'chemistry',
-                'experiment', 'discovery', 'genome', 'quantum', 'evolution', 'vaccine', 'medicine',
-                'health', 'disease', 'fossil', 'species', 'environment'],
-    'World News': ['war', 'politics', 'election', 'government', 'diplomat', 'united nations', 'treaty',
-                   'conflict', 'refugee', 'sanction', 'summit', 'parliament', 'prime minister', 'president'],
-}
