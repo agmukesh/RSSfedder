@@ -1,0 +1,29 @@
+--- routes.py
++++ routes.py
+@@ -175,7 +175,7 @@
+             else:
+                 conn = sqlite3.connect(DB_FILE)
+                 c = conn.cursor()
+-                c.execute('UPDATE feeds SET name = ?, url = ?, category = ? WHERE id = ? AND (added_by = ? OR is_default = 1)',
++                c.execute('UPDATE feeds SET name = ?, url = ?, category = ? WHERE id = ? AND added_by = ?',
+                           (name, url, category, feed_id, username))
+                 conn.commit()
+                 conn.close()
+@@ -184,7 +184,7 @@
+             feed_id = request.form.get("feed_id", type=int)
+             conn = sqlite3.connect(DB_FILE)
+             c = conn.cursor()
+-            c.execute('DELETE FROM feeds WHERE id = ? AND (added_by = ? OR is_default = 1)', (feed_id, username))
++            c.execute('DELETE FROM feeds WHERE id = ? AND added_by = ?', (feed_id, username))
+             conn.commit()
+             conn.close()
+             flash("Feed removed.", "success")
+@@ -193,7 +193,7 @@
+             enabled = 1 if request.form.get("enabled") == "1" else 0
+             conn = sqlite3.connect(DB_FILE)
+             c = conn.cursor()
+-            c.execute('UPDATE feeds SET enabled = ? WHERE id = ? AND (added_by = ? OR is_default = 1)',
++            c.execute('UPDATE feeds SET enabled = ? WHERE id = ? AND added_by = ?',
+                       (enabled, feed_id, username))
+             if not enabled:
+                 c.execute('SELECT name FROM feeds WHERE id = ?', (feed_id,))

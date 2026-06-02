@@ -1,0 +1,11 @@
+--- templates/manage_feeds.html
++++ templates/manage_feeds.html
+@@ -145,7 +145,7 @@
+             </div>
+             <div class="feed-actions">
+                 <label class="feed-toggle" title="Fetch articles from this feed">
+-                    <input type="checkbox" {% if feed.enabled %}checked{% endif %} onchange="toggleFeed({{ feed.id }}, this)">
++                    <input type="checkbox" {% if feed.enabled %}checked{% endif %} disabled>
+                     Enabled
+                 </label>
+             </div>

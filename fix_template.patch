@@ -1,0 +1,52 @@
+--- templates/manage_feeds.html
++++ templates/manage_feeds.html
+@@ -141,6 +141,7 @@
+             <div class="feed-info">
+                 <div class="feed-name">{{ feed.name }}</div>
+                 <div class="feed-url">{{ feed.url }}</div>
++                <span class="feed-cat">Default</span>
+             </div>
+             <div class="feed-actions">
+                 <label class="feed-toggle" title="Fetch articles from this feed">
+@@ -148,43 +149,9 @@
+                     Enabled
+                 </label>
+-                <button type="button" class="edit-btn" onclick="toggleEdit({{ feed.id }})">Edit</button>
+-                <form method="POST" style="margin:0;" onsubmit="return confirm('Delete this default feed?')">
+-                    <input type="hidden" name="action" value="delete">
+-                    <input type="hidden" name="feed_id" value="{{ feed.id }}">
+-                    <button type="submit" class="delete-btn">Delete</button>
+-                </form>
+             </div>
+         </div>
+-        <div class="edit-form" id="edit-form-{{ feed.id }}">
+-            <form method="POST">
+-                <input type="hidden" name="action" value="edit">
+-                <input type="hidden" name="feed_id" value="{{ feed.id }}">
+-                <div class="edit-row">
+-                    <div class="edit-group">
+-                        <label>Name</label>
+-                        <input type="text" name="name" value="{{ feed.name }}" required>
+-                    </div>
+-                    <div class="edit-group">
+-                        <label>URL</label>
+-                        <input type="text" name="url" value="{{ feed.url }}" required>
+-                    </div>
+-                    <div class="edit-group" style="max-width: 160px;">
+-                        <label>Category</label>
+-                        <select name="category">
+-                            {% for cat in categories %}
+-                            <option value="{{ cat }}" {% if cat == feed.category %}selected{% endif %}>{{ cat }}</option>
+-                            {% endfor %}
+-                        </select>
+-                    </div>
+-                </div>
+-                <div class="edit-form-actions">
+-                    <button type="submit" class="save-btn">Save</button>
+-                    <button type="button" class="cancel-btn" onclick="toggleEdit({{ feed.id }})">Cancel</button>
+-                </div>
+-            </form>
+-        </div>
+     </div>
+ {% endfor %}
+ {% if default_feeds %}</div>{% endif %}
