@@ -18,6 +18,9 @@ import hashlib
 import logging
 import feedparser
 import requests
+import urllib.parse
+import socket
+import ipaddress
 from config import DB_FILE
 from db import cleanup_old_articles
 from articles import analyze_sentiment, categorize_article, fetch_full_content
@@ -58,10 +61,41 @@ def is_fetch_in_progress():
         return _fetch_in_progress
 
 
+def is_safe_url(url):
+    """Validate that the URL is safe to fetch (HTTP/HTTPS and public IP)."""
+    try:
+        parsed = urllib.parse.urlparse(url)
+        if parsed.scheme not in ('http', 'https'):
+            return False
+
+        hostname = parsed.hostname
+        if not hostname:
+            return False
+
+        # Resolve all IPs for the hostname
+        addr_info = socket.getaddrinfo(hostname, None)
+        for result in addr_info:
+            ip_str = result[4][0]
+            ip = ipaddress.ip_address(ip_str)
+            if ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_multicast or ip.is_reserved or not ip.is_global or ip.is_unspecified:
+                return False
+
+        return True
+    except Exception:
+        return False
+
+
 def _parse_feed(rss_url):
     """Fetch and parse one RSS URL."""
+    if not is_safe_url(rss_url):
+        logger.error("Blocked fetch of unsafe feed URL: %s", rss_url)
+        return feedparser.parse(b"")
     try:
-        resp = requests.get(rss_url, headers={'User-Agent': FEED_USER_AGENT}, timeout=15)
+        # Disable redirects to prevent bypass via redirect to internal IP
+        resp = requests.get(rss_url, headers={'User-Agent': FEED_USER_AGENT}, timeout=15, allow_redirects=False)
+        if resp.status_code in (301, 302, 303, 307, 308):
+            logger.error("Blocked redirect for feed: %s", rss_url)
+            return feedparser.parse(b"")
         resp.raise_for_status()
         return feedparser.parse(resp.content)
     except Exception:
