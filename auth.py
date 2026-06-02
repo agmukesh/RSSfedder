@@ -82,16 +82,18 @@ def reset_password():
                 c.execute('UPDATE users SET reset_token = ? WHERE username = ?', (token, username))
                 conn.commit()
                 conn.close()
-                flash(f"Your reset token: {token}", "info")
-                return render_template('reset_password.html', step=2, token=token)
+                # Email stub: In a real app, send this via email.
+                print(f"EMAIL STUB: Send reset link with token {token} to user {username}")
+                flash("If an account exists, a password reset token has been sent.", "info")
+                return render_template('reset_password.html', step=2)
         else:
             # Step 2: validate token and set new password
             if len(new_password) < 4:
                 flash("Password must be at least 4 characters.", "error")
-                return render_template('reset_password.html', step=2, token=token)
+                return render_template('reset_password.html', step=2)
             if new_password != confirm:
                 flash("Passwords do not match.", "error")
-                return render_template('reset_password.html', step=2, token=token)
+                return render_template('reset_password.html', step=2)
             conn = sqlite3.connect(DB_FILE)
             conn.row_factory = sqlite3.Row
             c = conn.cursor()
