@@ -1,0 +1,10 @@
+--- routes.py
++++ routes.py
+@@ -15,8 +15,6 @@
+ from config import DB_FILE, CATEGORIES
+ from articles import fetch_feed, summarize_article, is_fetch_in_progress, get_active_threads_count
+ from db import get_articles_by_provider, get_active_feeds, get_sentiment_stats, get_sources, get_article_by_id, update_article_summary, _row_to_article, get_all_articles
+-from feeds import trigger_background_fetch
+-
+
+ main_bp = Blueprint('main', __name__)
