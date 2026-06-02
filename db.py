@@ -90,7 +90,7 @@ def seed_default_user():
     c.execute('SELECT COUNT(*) FROM users')
     if c.fetchone()[0] == 0:
         username = os.environ.get('DEFAULT_USERNAME', 'admin')
-        password = os.environ.get('DEFAULT_PASSWORD', 'changeme')
+        password = os.environ.get('DEFAULT_PASSWORD', 'changeme12345')
         password_hash = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
         try:
             c.execute('INSERT INTO users (username, password_hash) VALUES (?, ?)',
