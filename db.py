@@ -90,7 +90,21 @@ def seed_default_user():
     c.execute('SELECT COUNT(*) FROM users')
     if c.fetchone()[0] == 0:
         username = os.environ.get('DEFAULT_USERNAME', 'admin')
-        password = os.environ.get('DEFAULT_PASSWORD', 'changeme')
+        password = os.environ.get('DEFAULT_PASSWORD')
+
+        if not password:
+            import secrets
+            import string
+            # Generate a secure 16-character random password
+            alphabet = string.ascii_letters + string.digits + string.punctuation
+            password = ''.join(secrets.choice(alphabet) for _ in range(16))
+            print("==================================================")
+            print("SECURITY NOTICE: Generated default admin password.")
+            print(f"Username: {username}")
+            print(f"Password: {password}")
+            print("Please save this password or change it immediately.")
+            print("==================================================")
+
         password_hash = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
         try:
             c.execute('INSERT INTO users (username, password_hash) VALUES (?, ?)',
