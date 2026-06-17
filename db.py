@@ -14,10 +14,7 @@ import bcrypt
 from config import DB_FILE, DEFAULT_FEEDS
 
 
-def init_db():
-    """Initialize database schema."""
-    conn = sqlite3.connect(DB_FILE)
-    c = conn.cursor()
+def _create_articles_table(c):
     c.execute('''CREATE TABLE IF NOT EXISTS articles (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         provider TEXT NOT NULL,
@@ -31,6 +28,9 @@ def init_db():
         category TEXT DEFAULT 'Other',
         fetched_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )''')
+
+
+def _create_users_table(c):
     c.execute('''CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         username TEXT UNIQUE NOT NULL,
@@ -38,6 +38,9 @@ def init_db():
         reset_token TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )''')
+
+
+def _create_feeds_table(c):
     c.execute('''CREATE TABLE IF NOT EXISTS feeds (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL,
@@ -49,6 +52,9 @@ def init_db():
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         UNIQUE(url, added_by)
     )''')
+
+
+def _create_bookmarks_table(c):
     c.execute('''CREATE TABLE IF NOT EXISTS bookmarks (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         username TEXT NOT NULL,
@@ -57,6 +63,9 @@ def init_db():
         UNIQUE(username, article_id),
         FOREIGN KEY (article_id) REFERENCES articles(id) ON DELETE CASCADE
     )''')
+
+
+def _run_migrations(c):
     # Add category column if missing (migration for existing DBs)
     try:
         c.execute('ALTER TABLE articles ADD COLUMN category TEXT DEFAULT "Other"')
@@ -66,6 +75,17 @@ def init_db():
         c.execute('ALTER TABLE feeds ADD COLUMN enabled INTEGER DEFAULT 1')
     except sqlite3.OperationalError:
         pass
+
+
+def init_db():
+    """Initialize database schema."""
+    conn = sqlite3.connect(DB_FILE)
+    c = conn.cursor()
+    _create_articles_table(c)
+    _create_users_table(c)
+    _create_feeds_table(c)
+    _create_bookmarks_table(c)
+    _run_migrations(c)
     conn.commit()
     conn.close()
 
