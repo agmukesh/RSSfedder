@@ -15,7 +15,7 @@ from config import DB_FILE, CATEGORIES
 from db import (get_active_feeds, get_all_articles, get_articles_by_provider,
                 get_sentiment_stats, _row_to_article, get_sources,
                 get_article_by_id, update_article_summary)
-from feeds import trigger_background_fetch, is_fetch_in_progress
+from feeds import is_fetch_in_progress
 from auth import login_required
 from articles import summarize_article
 
